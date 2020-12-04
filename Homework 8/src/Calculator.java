@@ -7,15 +7,18 @@ import java.awt.*;
 import java.awt.event.*;
 public class Calculator extends JFrame implements ActionListener
   {
+	// The basis for this code is Display 17.19 which the instructions stated were fine to use. As a result, I don't really think I should 
+	// comment on all of those lines so I will focus my comments on how I took that simple calculator and fleshed it out to what it is here.
       public static final int WIDTH = 900;
       public static final int HEIGHT = 225;
       public static final int NUMBER_OF_DIGITS = 30;
-
+      // here I simply modified the text fields and added my own JLabels to use later for my non-editable text boxes with labels next to them
       private JLabel resultLabel; 
       private JLabel operandLabel;
       private JTextField resultField;
       private JTextField operandField;
       private double result = 0.0;
+      // here I also create two variables, count and tempNum to store the number of operations since reset or startup and the operand being inputted character by character
       private int count = 0;
       private String tempNum = "";
 
@@ -30,7 +33,7 @@ public class Calculator extends JFrame implements ActionListener
           setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
           setSize(WIDTH, HEIGHT);
           setLayout(new BorderLayout());
-
+          // here I use the initial way the Calculator creates its text fields to create my operand Label followed by a corresponding text field. I do the same for the results.
           JPanel textPanel = new JPanel();
           textPanel.setLayout(new FlowLayout());
           operandLabel = new JLabel("Operand");
@@ -38,6 +41,7 @@ public class Calculator extends JFrame implements ActionListener
           textPanel.add(operandLabel);
           operandField = new JTextField("Operand Will Appear Here", NUMBER_OF_DIGITS);
           operandField.setBackground(Color.WHITE);
+          // I use the setEditable method to make sure the user cannot type in these boxes. I do the same for the results.
           operandField.setEditable(false);
           textPanel.add(operandField);
           resultLabel = new JLabel("Result");
@@ -49,6 +53,7 @@ public class Calculator extends JFrame implements ActionListener
           textPanel.add(resultField);
           add(textPanel, BorderLayout.NORTH);
           JPanel buttonPanel = new JPanel();
+          // here is where I start making some tweaks to the buttons the user presses. I start with changing the background color for fun.
           buttonPanel.setBackground(new Color(204,154,237));
           buttonPanel.setLayout(new FlowLayout());
           JButton addButton = new JButton("+"); 
@@ -57,6 +62,7 @@ public class Calculator extends JFrame implements ActionListener
           JButton subtractButton = new JButton("—"); 
           subtractButton.addActionListener(this);
           buttonPanel.add(subtractButton); 
+          // here I take the same method for creating the + and - buttons for creating my * and / buttons as well as the Clear button.
           JButton multiplyButton = new JButton("*"); 
           multiplyButton.addActionListener(this);
           buttonPanel.add(multiplyButton); 
@@ -69,9 +75,12 @@ public class Calculator extends JFrame implements ActionListener
           JButton clearButton = new JButton("Clear"); 
           clearButton.addActionListener(this);
           buttonPanel.add(clearButton);
+          // here I create my own JPanel for specifically the numbers 0-9 and the decimal place as input buttons. I create a 4 row by 3 column GridLayout to house it all
           JPanel numPanel = new JPanel();
           numPanel.setBackground(new Color(254,184,255));
           GridLayout numLayout = new GridLayout(4, 3);
+          // after creating the GridLayout I set the JPanel to it and start making all my buttons in the order found on a stanard calculator left to right then top to bottom.
+          // this is all again the same as any other button.
           numPanel.setLayout(numLayout);
           JButton sevenButton = new JButton("7");
           sevenButton.addActionListener(this);
@@ -109,6 +118,7 @@ public class Calculator extends JFrame implements ActionListener
           
 
           add(buttonPanel, BorderLayout.CENTER);
+          // I set my numPanel to be at the bottom as that feels right.
           add(numPanel, BorderLayout.SOUTH);
       }
 
@@ -121,6 +131,7 @@ public class Calculator extends JFrame implements ActionListener
           catch (NumberFormatException e2)
           {
               operandField.setText("Error: Reenter Number.");
+          // here I catch my DivisionByZeroException that will come up later and give a simply error message in the operand text field.
           } catch (DivisionByZeroException e3) {
         	  operandField.setText("Error: Attempted to Divide By Zero");
           }
@@ -132,14 +143,18 @@ public class Calculator extends JFrame implements ActionListener
           String actionCommand = e.getActionCommand();
           if (actionCommand.equals("+"))
           {
+        	  // here is where my changes really start to take place. I start tracking my counts to check how many operations have been done and using 
+        	  // tempNum for the operand before resetting it
               result = result + stringToDouble(tempNum);
               tempNum = "";
               count++;
+              // I also clear the operand text field.
               operandField.setText("");
               resultField.setText(Double.toString(result));
           }
           else if (actionCommand.equals("—"))
           {
+        	  // this is more of the same
               result = result - stringToDouble(tempNum);
               tempNum = "";
               count++;
@@ -148,9 +163,12 @@ public class Calculator extends JFrame implements ActionListener
           }
           else if (actionCommand.equals("*"))
           {
+        	  // here I have to create my own function, multiplication. with the base result value being 0 it is impossible to use the prior format in a user friendly way.
+        	  // this is why I have my count. if it is the first operation, meaning the 0 is there unintended by the user, result is set to 1 to allow for multiplication to work intuitively.
         	  if(count == 0) {
         		  result = 1;
         	  }
+        	  // the rest here is more of the same
         	  result = result * stringToDouble(tempNum);
               tempNum = "";
               count++;
@@ -160,14 +178,19 @@ public class Calculator extends JFrame implements ActionListener
 
           else if (actionCommand.equals("/"))
           {
+        	  // division here gets interesting. I have to do the same count thing for the first operation but I cannot simply set the result to 1. I set it to the 2nd power of the operand so the result
+        	  // when the operand is divided by it will yield the operand itself allowing division to work extremely intuitively.
         	  if(count == 0) {
         		  result = Math.pow(stringToDouble(tempNum), 2);
         	  }
+        	  // here is also where I have to use my DivisionByZeroException. I check for the operand being close enough to zero and if it is I
+        	  // set the operand and field to nothing and throw the exception.
         	  if(stringToDouble(tempNum) < 1.0E-10 && stringToDouble(tempNum) > -1.0E-10) {
         		  operandField.setText("");
         		  tempNum = "";
         		  throw new DivisionByZeroException();
         	  }
+        	  // the rest here is more of the same as before.
         	  result = result / stringToDouble(tempNum) ;
               tempNum = "";
               count++;
@@ -177,13 +200,17 @@ public class Calculator extends JFrame implements ActionListener
           else if (actionCommand.equals("Reset"))
           {
               result = 0.0;
+              // here after a reset I set count to 0 since after resetting it is unintuitive for the value of 0 to be inserted there automatically as the base result and this solves that.
               count = 0;
               resultField.setText("0.0");
           }
           else if (actionCommand.equals("Clear"))
           {
+        	  // here I check for my new "clear" button which simply sets the operand and operand field to nothing.
               tempNum = "";
               operandField.setText("");
+          // following this is the onslaught of numbers and the decimal point. basically I just add the string of the number or decimal to the existing string of the current operand.
+          // since later this will converted to a double this is entirely fine. I also set the operand field to show the current string after each change.
           } else if(actionCommand.equals("0")) {
         	  tempNum += "0";
         	  operandField.setText(tempNum);
